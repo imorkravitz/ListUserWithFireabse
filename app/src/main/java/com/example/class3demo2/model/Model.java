@@ -4,6 +4,8 @@ import android.os.Handler;
 import android.os.Looper;
 
 import androidx.core.os.HandlerCompat;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -21,11 +23,14 @@ public class Model {
 
     }
 
-    public interface GetAllStudentsListener{
-        void onComplete(List<Student> list);
+    MutableLiveData<List<Student>> studentsList = new MutableLiveData<List<Student>>();
+    public LiveData<List<Student>> getAll(){
+        if (studentsList.getValue() == null) { refreshStudentList(); };
+        return  studentsList;
     }
-    public void getAllStudents(GetAllStudentsListener listener){
-      modelFirebase.getAllStudents(listener);
+
+    public void refreshStudentList(){
+        modelFirebase.getAllStudents(list -> studentsList.setValue(list));
     }
 
     public interface AddStudentListener{

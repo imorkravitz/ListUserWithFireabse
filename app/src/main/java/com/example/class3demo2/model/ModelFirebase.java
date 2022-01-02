@@ -22,7 +22,10 @@ import java.util.Map;
 public class ModelFirebase {
     FirebaseFirestore db = FirebaseFirestore.getInstance(); // a singleton
 
-    public void getAllStudents(Model.GetAllStudentsListener listener){
+    public interface GetAllStudentsListener{
+        void onComplete(List<Student> list);
+    }
+    public void getAllStudents(GetAllStudentsListener listener){
         // Create a new user with a first and last name
         db.collection(Student.COLLECTION_NAME)
                 .get()
@@ -86,7 +89,5 @@ public class ModelFirebase {
                         listener.onComplete(student);
                     }
                 });
-
-
     }
 }

@@ -3,12 +3,15 @@ package com.example.class3demo2;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.NavDirections;
 import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -28,9 +31,15 @@ import com.example.class3demo2.model.Student;
 import java.util.List;
 
 public class StudentListRvFragment extends Fragment {
-    List<Student> data;
+    StudentListRvViewModel viewModel;
     MyAdapter adapter;
     SwipeRefreshLayout swipeRefreshLayout;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        viewModel = new ViewModelProvider(this).get(StudentListRvViewModel.class);
+    }
 
     @Nullable
     @Override
@@ -49,24 +58,19 @@ public class StudentListRvFragment extends Fragment {
         adapter.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(View v,int position) {
-                String stId = data.get(position).getId();
+                String stId = viewModel.getData().getValue().get(position).getId();
                 Navigation.findNavController(v).navigate((NavDirections) StudentListRvFragmentDirections.actionStudentListRvFragmentToStudentDetailsFragment(stId));
 
             }
         });
 
         setHasOptionsMenu(true);
-        refresh();
+        viewModel.getData().observe(getViewLifecycleOwner(), students -> refresh());
         return view;
     }
-
     private void refresh() {
-        swipeRefreshLayout.setRefreshing(true);
-        Model.instance.getAllStudents((list)->{
-            data = list;
-            adapter.notifyDataSetChanged();
-            swipeRefreshLayout.setRefreshing(false);
-        });
+        adapter.notifyDataSetChanged();
+        swipeRefreshLayout.setRefreshing(false);
     }
 
     class MyViewHolder extends RecyclerView.ViewHolder{
@@ -109,7 +113,7 @@ public class StudentListRvFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull MyViewHolder holder, int position) {
-            Student student = data.get(position);
+            Student student = viewModel.getData().getValue().get(position);
             holder.nameTv.setText(student.getName());
             holder.idTv.setText(student.getId());
             holder.cb.setChecked(student.isFlag());
@@ -117,10 +121,10 @@ public class StudentListRvFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            if(data == null){
+            if(viewModel.getData().getValue() == null){
                 return 0;
             }
-            return data.size();
+            return viewModel.getData().getValue().size();
         }
     }
 
