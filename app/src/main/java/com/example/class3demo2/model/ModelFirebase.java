@@ -8,6 +8,7 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreSettings;
@@ -34,6 +35,7 @@ public class ModelFirebase {
     public void getAllStudents(Long lastUpdateDate, GetAllStudentsListener listener){
         // Create a new user with a first and last name
         db.collection(Student.COLLECTION_NAME)
+                .whereGreaterThanOrEqualTo("updateDate",new Timestamp(lastUpdateDate,0))// adding filter
                 .get()
                 .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
                     @Override
