@@ -10,7 +10,6 @@ import androidx.navigation.Navigation;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
-
 import android.content.Context;
 import android.os.Bundle;
 import android.util.Log;
@@ -21,14 +20,10 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
-import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.example.class3demo2.model.Model;
 import com.example.class3demo2.model.Student;
-
-import java.util.List;
 
 public class StudentListRvFragment extends Fragment {
     StudentListRvViewModel viewModel;
@@ -46,7 +41,7 @@ public class StudentListRvFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_students_list,container,false);
         swipeRefreshLayout = view.findViewById(R.id.studentlist_swiprefresh);
-        swipeRefreshLayout.setOnRefreshListener(() -> refresh());
+        swipeRefreshLayout.setOnRefreshListener(() -> Model.instance.refreshStudentList());
         RecyclerView list = view.findViewById(R.id.studentlist_rv);
         list.setHasFixedSize(true);
 
@@ -66,6 +61,16 @@ public class StudentListRvFragment extends Fragment {
 
         setHasOptionsMenu(true);
         viewModel.getData().observe(getViewLifecycleOwner(), students -> refresh());
+
+        //observe:
+        swipeRefreshLayout.setRefreshing(Model.instance.getStudentListLoadingState().getValue() == Model.StudentListLoadingState.loading);
+        Model.instance.getStudentListLoadingState().observe(getViewLifecycleOwner(), studentListLoadingState -> {
+            if (studentListLoadingState == Model.StudentListLoadingState.loading){
+                swipeRefreshLayout.setRefreshing(true);
+            }else{
+                swipeRefreshLayout.setRefreshing(false);
+            }
+        });
         return view;
     }
     private void refresh() {
