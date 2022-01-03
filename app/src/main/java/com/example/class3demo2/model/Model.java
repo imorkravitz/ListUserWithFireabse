@@ -1,11 +1,16 @@
 package com.example.class3demo2.model;
 
+import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 
 import androidx.core.os.HandlerCompat;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+
+import com.example.class3demo2.MyApplication;
+
 import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -43,24 +48,44 @@ public class Model {
         studentListLoadingState.setValue(StudentListLoadingState.loading);
 
         // get last local update date
+        Long lastUpdateDate = MyApplication.getContext().getSharedPreferences("TAG", Context.MODE_PRIVATE).getLong("StudentListLoadingState",0);
+        modelFirebase.getAllStudents(lastUpdateDate, new ModelFirebase.GetAllStudentsListener() {
+            @Override
+            public void onComplete(List<Student> list) {
+                // add all records to the local db
+                executor.execute(new Runnable() {
+                    @Override
+                    public void run() {
+                        Long lud = new Long(0); // local update date
+                        Log.d("TAG","firebase returned "+ list.size());
+                        for (Student student: list) {
+                            AppLocalDb.db.studentDao().insertAll(student);
+                            if (lud<student.getUpdateDate()){
+                                lud = student.getUpdateDate();
+                            }
+                        }
+                        // update last local update date
+                        MyApplication.getContext().getSharedPreferences("TAG",Context.MODE_PRIVATE)
+                                .edit()
+                                .putLong("StudentListLoadingState",lud)
+                                .commit();
 
+                        List<Student> stList = AppLocalDb.db.studentDao().getAll();
+                        studentsList.postValue(stList);
+                        studentListLoadingState.postValue(StudentListLoadingState.loaded);
+                    }
+                });
+                // remove
 
-
-        // firebase get all updates since last local update date
-
-        // add all records to the local db
-
-        // remove
-
-        // update last local update date
-
-        // return all data to caller
-
-
-        modelFirebase.getAllStudents(list -> {
-            studentListLoadingState.setValue(StudentListLoadingState.loaded);
-            studentsList.setValue(list);
+                // return all data to caller
+            }
         });
+        // firebase get all updates since last local update date
+//
+//        modelFirebase.getAllStudents(lastUpdateDate, list -> {
+//            studentListLoadingState.setValue(StudentListLoadingState.loaded);
+//            studentsList.setValue(list);
+//        });
     }
 
     public interface AddStudentListener{

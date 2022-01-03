@@ -4,6 +4,9 @@ import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
+import com.google.firebase.Timestamp;
+import com.google.firebase.firestore.FieldValue;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -16,13 +19,18 @@ public class Student {
     String name = "";
     boolean flag = false;
 
+    public void setUpdateDate(Long updateDate) {
+        this.updateDate = updateDate;
+    }
+
+    Long updateDate = new Long(0);
+
     public Student(){}
     public Student(String name, String id, boolean flag) {
         this.name = name;
         this.id = id;
         this.flag = flag;
     }
-
 
 
     public void setId(String id) {
@@ -54,6 +62,7 @@ public class Student {
         json.put("id", id);
         json.put("name", name);
         json.put("flag", flag);
+        json.put("updateDate", FieldValue.serverTimestamp()); // field of firebase put the clock of the server
 
         return json;
     }
@@ -62,8 +71,15 @@ public class Student {
         String id = (String) json.get("id");
         String name = (String) json.get("name");
         Boolean flag = (Boolean) json.get("flag");
+        Timestamp ts = (Timestamp)json.get("updateDate");
+        Long updateDate = ts.getSeconds();
 
         Student student = new Student(name,id,flag);
+        student.setUpdateDate(updateDate);
         return student;
+    }
+    //TODO:...
+    public Long getUpdateDate() {
+        return updateDate;
     }
 }

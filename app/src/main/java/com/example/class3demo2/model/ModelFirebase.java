@@ -10,6 +10,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreSettings;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import java.util.LinkedList;
@@ -19,10 +20,18 @@ import java.util.Map;
 public class ModelFirebase {
     FirebaseFirestore db = FirebaseFirestore.getInstance(); // a singleton
 
+    public ModelFirebase(){
+        FirebaseFirestoreSettings settings = new FirebaseFirestoreSettings.Builder()
+                .setPersistenceEnabled(false)
+                .build();
+        db.setFirestoreSettings(settings);
+    }
+
     public interface GetAllStudentsListener{
         void onComplete(List<Student> list);
     }
-    public void getAllStudents(GetAllStudentsListener listener){
+    //TODO: fix..
+    public void getAllStudents(Long lastUpdateDate, GetAllStudentsListener listener){
         // Create a new user with a first and last name
         db.collection(Student.COLLECTION_NAME)
                 .get()
